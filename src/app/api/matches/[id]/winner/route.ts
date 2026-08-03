@@ -21,6 +21,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     .single()
 
   if (matchError) return NextResponse.json({ error: matchError.message }, { status: 500 })
+  if (match.winner_id) {
+    return NextResponse.json({ error: 'Winner already decided for this match' }, { status: 409 })
+  }
   if (winnerId !== match.team_a_id && winnerId !== match.team_b_id) {
     return NextResponse.json({ error: 'winnerId must be one of the match teams' }, { status: 400 })
   }

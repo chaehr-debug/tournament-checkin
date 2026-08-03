@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { Match, Team } from '@/lib/bracket/types'
 
 interface LiveMatchCardProps {
@@ -9,16 +10,24 @@ interface LiveMatchCardProps {
 }
 
 export function LiveMatchCard({ match, teams, onChange }: LiveMatchCardProps) {
+  const [error, setError] = useState<string | null>(null)
+
   function teamName(teamId: string | null) {
     return teams.find((team) => team.id === teamId)?.name ?? '(미배정)'
   }
 
   async function pickWinner(winnerId: string) {
-    await fetch(`/api/matches/${match.id}/winner`, {
+    setError(null)
+    const response = await fetch(`/api/matches/${match.id}/winner`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ winnerId }),
     })
+    if (!response.ok) {
+      const body = await response.json()
+      setError(body.error ?? '승자 지정에 실패했습니다')
+      return
+    }
     onChange()
   }
 
@@ -55,6 +64,7 @@ export function LiveMatchCard({ match, teams, onChange }: LiveMatchCardProps) {
           </div>
         )
       )}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   )
 }
